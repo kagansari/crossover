@@ -1,0 +1,65 @@
+{
+	"info": {
+		"_postman_id": "09bac6d0-136a-49ee-b66e-1816fdb1d1ad",
+		"name": "Crossover",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "5766449"
+	},
+	"item": [
+		{
+			"name": "Charge Request",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"serviceType\": \"voice\",\n  \"unit\": 3\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://wx0himl2kd.execute-api.us-east-1.amazonaws.com/prod/charge-request-redis",
+					"protocol": "https",
+					"host": [
+						"wx0himl2kd",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"prod",
+						"charge-request-redis"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reset Redis",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://wx0himl2kd.execute-api.us-east-1.amazonaws.com/prod/reset-redis",
+					"protocol": "https",
+					"host": [
+						"wx0himl2kd",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"prod",
+						"reset-redis"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

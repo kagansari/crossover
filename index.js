@@ -8,23 +8,27 @@ const DEFAULT_BALANCE = 100;
 const MAX_EXPIRATION = 60 * 60 * 24 * 30;
 const memcachedClient = new memcached(`${process.env.ENDPOINT}:${process.env.PORT}`);
 exports.chargeRequestRedis = async function (input) {
+    const currentTs = Date.now()
     const redisClient = await getRedisClient();
-    var remainingBalance = await getBalanceRedis(redisClient, KEY);
-    var charges = getCharges();
+
+    const charges = getCharges(input.unit);
+    const remainingBalance = await chargeRedis(redisClient, KEY, charges);
     const isAuthorized = authorizeRequest(remainingBalance, charges);
+    await disconnectRedis(redisClient);
+
     if (!isAuthorized) {
         return {
             remainingBalance,
             isAuthorized,
             charges: 0,
+            duration: Date.now() - currentTs
         };
     }
-    remainingBalance = await chargeRedis(redisClient, KEY, charges);
-    await disconnectRedis(redisClient);
     return {
         remainingBalance,
         charges,
         isAuthorized,
+        duration: Date.now() - currentTs
     };
 };
 exports.resetRedis = async function () {
@@ -54,14 +58,16 @@ exports.resetMemcached = async function () {
     return ret;
 };
 exports.chargeRequestMemcached = async function (input) {
-    var remainingBalance = await getBalanceMemcached(KEY);
-    const charges = getCharges();
+    const currentTs = Date.now()
+    let remainingBalance = await getBalanceMemcached(KEY);
+    const charges = getCharges(input.unit);
     const isAuthorized = authorizeRequest(remainingBalance, charges);
     if (!authorizeRequest(remainingBalance, charges)) {
         return {
             remainingBalance,
             isAuthorized,
             charges: 0,
+            duration: Date.now() - currentTs
         };
     }
     remainingBalance = await chargeMemcached(KEY, charges);
@@ -69,6 +75,7 @@ exports.chargeRequestMemcached = async function (input) {
         remainingBalance,
         charges,
         isAuthorized,
+        duration: Date.now() - currentTs
     };
 };
 async function getRedisClient() {
@@ -94,7 +101,7 @@ async function disconnectRedis(client) {
             if (error) {
                 reject(error);
             }
-            else if (res == "OK") {
+            else if (res === "OK") {
                 console.log('redis client disconnected');
                 resolve(res);
             }
@@ -107,8 +114,8 @@ async function disconnectRedis(client) {
 function authorizeRequest(remainingBalance, charges) {
     return remainingBalance >= charges;
 }
-function getCharges() {
-    return DEFAULT_BALANCE / 20;
+function getCharges(unit) {
+    return (DEFAULT_BALANCE / 20) * unit;
 }
 async function getBalanceRedis(redisClient, key) {
     const res = await util.promisify(redisClient.get).bind(redisClient).call(redisClient, key);
